@@ -22,6 +22,9 @@ local GLib = lgi.GLib
 ---@field onmessage fun(message: string) Callback fired when a message is received.
 ---@field onerror fun(err: string) Callback fired when a connection error occurs.
 ---@field onclose fun(was_clean: boolean, code: number, reason: string) Callback fired when the connection is closed.
+---@field send fun(self: WebSocket, data: string)
+---@field close fun(self: WebSocket, code?: number, reason?: string)
+---@field start fun(self: WebSocket)
 ---@field private _connection any The underlying Gio.SocketConnection.
 ---@field private _is_connected boolean True if the websocket is currently connected.
 ---@field private _should_reconnect boolean True if the client should attempt to reconnect on close.
