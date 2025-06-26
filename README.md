@@ -54,14 +54,17 @@ local WebSocket = require('lgi_websocket')
 
 **2. Create a new client instance:**
 
-You can specify a custom retry interval in the options table.
+You can specify a custom retry interval or pass an existing `GLib.MainLoop` instance.
 
 ```lua
--- Connect to a WebSocket server
 local url = "ws://localhost:5010/ws"
 
--- Create an instance with a custom retry interval of 3 seconds
+-- Standalone usage (manages its own event loop)
 local ws = WebSocket.new(url, { retry_interval = 3 })
+
+-- Integrated usage (with an existing main loop)
+-- local main_loop = GLib.MainLoop.new()
+-- local ws = WebSocket.new(url, { main_loop = main_loop })
 ```
 
 **3. Assign event handlers:**
@@ -106,7 +109,7 @@ ws:start()
 
 - `ws:send(data)`: Sends a string message to the server.
 - `ws:close(code, reason)`: Closes the connection permanently and prevents reconnection.
-- `ws:start()`: Starts the client and its event loop.
+- `ws:start()`: Starts the connection process. If not using an external event loop, this method also runs the loop and blocks until the connection is closed.
 
 ## Expected Output
 

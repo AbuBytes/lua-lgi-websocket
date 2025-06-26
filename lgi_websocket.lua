@@ -37,6 +37,7 @@ WebSocket.__index = WebSocket
 
 ---@class WebSocketOptions
 ---@field retry_interval? number The interval in seconds to wait before attempting to reconnect (default: 5).
+---@field main_loop? any An existing GLib.MainLoop instance to integrate with.
 
 --- Creates a new WebSocket client instance.
 ---@param url string The WebSocket URL (e.g., "ws://localhost:5010/ws").
@@ -67,7 +68,8 @@ function WebSocket.new(url, options)
     self.onclose = function(was_clean, code, reason) end
 
     self.client = Gio.SocketClient.new()
-    self._main_loop = GLib.MainLoop.new()
+    self._is_external_loop = self.options.main_loop ~= nil
+    self._main_loop = self.options.main_loop or GLib.MainLoop.new()
     self._connection = nil
     self._is_connected = false
     self._should_reconnect = true
@@ -311,24 +313,30 @@ function WebSocket:close(code, reason)
         self:_handle_close(true, code or 1000, reason or "Normal closure")
     end
 
-    if self._main_loop:is_running() then
+    if not self._is_external_loop and self._main_loop:is_running() then
         self._main_loop:quit()
     end
 end
 
---- Starts the client, initiates the connection, and runs the GLib Main Loop.
+--- Starts the client and initiates the connection.
 ---
---- This function will block until `main_loop:quit()` is called (e.g., by `ws:close()` or Ctrl+C).
+--- If no external main loop was provided during creation, this function will also run
+--- the GLib Main Loop and will block until `ws:close()` is called or Ctrl+C is pressed.
 function WebSocket:start()
-    GLib.unix_signal_add(GLib.PRIORITY_HIGH, 2, function() -- SIGINT
-        print("\n🛑 Interrupted by user")
-        self:close(1000, "User interrupted")
-        return false
-    end)
+    if not self._is_external_loop then
+        GLib.unix_signal_add(GLib.PRIORITY_HIGH, 2, function() -- SIGINT
+            print("\n🛑 Interrupted by user")
+            self:close(1000, "User interrupted")
+            return false
+        end)
+    end
 
     self:_connect()
-    self._main_loop:run()
-    print("👋 WebSocket client terminated")
+
+    if not self._is_external_loop then
+        self._main_loop:run()
+        print("👋 WebSocket client terminated")
+    end
 end
 
 return WebSocket
