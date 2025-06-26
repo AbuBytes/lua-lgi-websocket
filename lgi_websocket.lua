@@ -32,10 +32,12 @@ local GLib = lgi.GLib
 local WebSocket = {}
 WebSocket.__index = WebSocket
 
+---@class WebSocketOptions
+---@field retry_interval? number The interval in seconds to wait before attempting to reconnect (default: 5).
+
 --- Creates a new WebSocket client instance.
 ---@param url string The WebSocket URL (e.g., "ws://localhost:5010/ws").
----@param options? table An optional table of settings.
----@param options.retry_interval? number The interval in seconds to wait before attempting to reconnect (default: 5).
+---@param options? WebSocketOptions An optional table of settings.
 ---@return WebSocket
 function WebSocket.new(url, options)
     ---@type WebSocketInternal
