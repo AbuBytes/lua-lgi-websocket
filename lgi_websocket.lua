@@ -26,6 +26,9 @@ local GLib = lgi.GLib
 ---@field private _is_connected boolean True if the websocket is currently connected.
 ---@field private _should_reconnect boolean True if the client should attempt to reconnect on close.
 ---@field private _reconnect_timer number|nil The ID of the reconnection timer source.
+---@class (internal) WebSocketInternal: WebSocket
+---@field client any The underlying Gio.SocketClient.
+---@field _main_loop any The GLib.MainLoop instance.
 local WebSocket = {}
 WebSocket.__index = WebSocket
 
@@ -35,6 +38,7 @@ WebSocket.__index = WebSocket
 ---@param options.retry_interval? number The interval in seconds to wait before attempting to reconnect (default: 5).
 ---@return WebSocket
 function WebSocket.new(url, options)
+    ---@type WebSocketInternal
     local self = setmetatable({}, WebSocket)
 
     local success, parsed_uri = pcall(GLib.Uri.parse, url, GLib.UriFlags.NONE)
@@ -68,6 +72,7 @@ function WebSocket.new(url, options)
 end
 
 --- Internal method to initiate the connection.
+---@private
 function WebSocket:_connect()
     print("Attempting to connect to: " .. self.url)
     self.client:connect_to_host_async(self.host, self.port, nil, function(client, result)
@@ -87,6 +92,7 @@ function WebSocket:_connect()
 end
 
 --- Internal method to perform the WebSocket handshake.
+---@private
 function WebSocket:_do_handshake()
     local output_stream = self._connection:get_output_stream()
     local input_stream = self._connection:get_input_stream()
@@ -136,6 +142,7 @@ function WebSocket:_do_handshake()
 end
 
 --- Internal method to continuously read WebSocket frames.
+---@private
 function WebSocket:_read_frames()
     local input_stream = self._connection:get_input_stream()
 
@@ -195,6 +202,7 @@ end
 
 --- Internal error handler.
 ---@param err string The error message.
+---@private
 function WebSocket:_handle_error(err)
     if self._is_connected then
         -- This will trigger the onclose event and schedule reconnection
@@ -207,6 +215,7 @@ end
 ---@param was_clean boolean True if the connection closed cleanly.
 ---@param code number The WebSocket closing status code.
 ---@param reason string A description of why the connection closed.
+---@private
 function WebSocket:_handle_close(was_clean, code, reason)
     if self._connection then
         self._connection:close(nil)
@@ -224,6 +233,7 @@ function WebSocket:_handle_close(was_clean, code, reason)
 end
 
 --- Internal method to schedule a reconnection attempt.
+---@private
 function WebSocket:_schedule_reconnect()
     if not self._should_reconnect then return end
 
