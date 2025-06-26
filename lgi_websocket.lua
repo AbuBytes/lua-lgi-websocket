@@ -3,7 +3,7 @@
 local lgi = require('lgi')
 local Gio = lgi.Gio
 local GLib = lgi.GLib
-local GObject = lgi.GObject
+-- local GObject = lgi.GObject -- Unused
 
 ---@meta
 
@@ -148,6 +148,7 @@ function WebSocket:_read_frames()
 
         local header = header_bytes:get_data()
         local byte1, byte2 = header:byte(1), header:byte(2)
+        -- local fin = (byte1 & 0x80) ~= 0 -- Unused
         local opcode = byte1 & 0x0F
         local payload_len = byte2 & 0x7F
 
