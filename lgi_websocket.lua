@@ -16,7 +16,7 @@ local GLib = lgi.GLib
 ---@field host string The server host.
 ---@field port number The server port.
 ---@field path string The request path.
----@field options table The options table provided on creation.
+---@field options WebSocketOptions The options table provided on creation.
 ---@field retry_interval number The interval in seconds to wait before reconnecting.
 ---@field onopen fun() Callback fired when the connection is successfully established.
 ---@field onmessage fun(message: string) Callback fired when a message is received.
@@ -27,6 +27,7 @@ local GLib = lgi.GLib
 ---@field start fun(self: WebSocket)
 ---@field private _connection any The underlying Gio.SocketConnection.
 ---@field private _is_connected boolean True if the websocket is currently connected.
+---@field private _is_external_loop boolean True if the main loop is managed externally.
 ---@field private _should_reconnect boolean True if the client should attempt to reconnect on close.
 ---@field private _reconnect_timer number|nil The ID of the reconnection timer source.
 ---@class (internal) WebSocketInternal: WebSocket
